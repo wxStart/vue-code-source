@@ -14,7 +14,11 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+
+// 保存原来的$mount 方法
 const mount = Vue.prototype.$mount
+
+// 覆写 $mount 方法，
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
