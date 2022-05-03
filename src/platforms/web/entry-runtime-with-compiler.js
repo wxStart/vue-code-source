@@ -18,7 +18,10 @@ const idToTemplate = cached(id => {
 // 保存原来的$mount 方法
 const mount = Vue.prototype.$mount
 
-// 覆写 $mount 方法，
+//! 覆写 $mount 方法， 在此方法的最后执行了原来的 $mount方法，在此之前会处理渲染的模板
+//! render 优先级最高，然后是template，最后是 el
+//! template 可以是 '#'开头的字符串，也可以是元素字节点
+//! 如果render函数不存在，最后会根据template通过 compileToFunctions 生成render函数
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
@@ -35,6 +38,8 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+
+  
   if (!options.render) {
     let template = options.template
     if (template) {
