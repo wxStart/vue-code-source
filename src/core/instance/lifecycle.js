@@ -38,6 +38,7 @@ export function initLifecycle (vm: Component) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
+    // 找到 abstract 为false的父节点，将当前实例放到父节点下面
     parent.$children.push(vm)
   }
 
