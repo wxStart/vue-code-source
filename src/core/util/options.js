@@ -1,5 +1,7 @@
 /* @flow */
 
+// 这个文件主要讲的是 options 中的处理和merge
+
 import config from '../config'
 import { warn } from './debug'
 import { set } from '../observer/index'
@@ -159,6 +161,7 @@ function mergeHook (
     : res
 }
 
+
 function dedupeHooks (hooks) {
   const res = []
   for (let i = 0; i < hooks.length; i++) {
@@ -305,7 +308,7 @@ function normalizeProps (options: Object, vm: ?Component) {
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
-        name = camelize(val)
+        name = camelize(val) // 中划线转驼峰
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
@@ -344,7 +347,7 @@ function normalizeInject (options: Object, vm: ?Component) {
     for (const key in inject) {
       const val = inject[key]
       normalized[key] = isPlainObject(val)
-        ? extend({ from: key }, val)
+        ? extend({ from: key }, val) // 合并两个对象，改变了第一个参数的对象，相当于 a = {...a,...b},返回a对象
         : { from: val }
     }
   } else if (process.env.NODE_ENV !== 'production') {
@@ -402,10 +405,35 @@ export function mergeOptions (
   normalizeInject(child, vm)
   normalizeDirectives(child)
 
+  /**
+   当前的child会变成如下解构
+      注释中的 options其实就是 当前的child对象
+      {
+        props:{  // options的 props 可以是数组也可以是 对象
+        [key]:value, 
+        对options的props处理，如果是数组，则会是[key]={type:null},如果是options的props是对象，则机选判断 ptions.props[key]的值value是不是一个对象，如果是对象
+        则 [key] = value,否则 [key]= {type:value}；
+      },
+      inject:{ // options的 inject 可以是数组，也可以是对象
+        [key]:{ from: value },
+        对options的 inject 处理，如果是数组，则会是 inject[key]={from:`${key}`},如果是options的inject是对象，则会继续判断ptions.inject[key]的值 value（ptions.inject[key]） 是不是一个对象，如果值是一个对象，则 inject[key] ={ from:`${key}`, ...value },不是对象则  inject[key] ={ from: value }。
+      }
+      directives:{
+        [key]:{
+          bind:fn, update:fn,
+        }
+        指令相关，如果options.directives[key]是一个函数 fn ，,则会处理成 { bind:fn, update:fn} 所以在bind和uodate时候都会执行 fn，
+        可以推测出  指令应该是至少有bind和update函数。
+      }
+   }
+  */
+
+
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  //! 可以看出  minxis 的优先级最高，然后是 extends中的,最后是 options里面的
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)

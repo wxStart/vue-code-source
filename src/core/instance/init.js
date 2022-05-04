@@ -36,6 +36,7 @@ export function initMixin (Vue: Class<Component>) {
       //!给  $options 属性生成一些
       initInternalComponent(vm, options)
     } else {
+      //todo=> mergeOptions
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
